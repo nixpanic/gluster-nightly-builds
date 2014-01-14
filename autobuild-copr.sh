@@ -163,12 +163,13 @@ git clean -f -d
 # generate a version based on branch.date.last-commit-hash
 if [ ${GIT_BRANCH} = 'master' ]; then
 	GIT_VERSION=''
+	GIT_HASH="$(git log -1 --format=%h)"
+	VERSION="$(date +%Y%m%d).${GIT_HASH}"
 else
-	GIT_VERSION="$(sed 's/.*-//' <<< ${GIT_BRANCH})."
+	GIT_VERSION="$(sed 's/.*-//' <<< ${GIT_BRANCH})"
+	GIT_HASH="$(git log -1 --format=%h)"
+	VERSION="${GIT_VERSION}.$(date +%Y%m%d).${GIT_HASH}"
 fi
-
-GIT_HASH="$(git log -1 --format=%h)"
-VERSION="${GIT_VERSION}$(date +%Y%m%d).${GIT_HASH}"
 
 if [ $(git shortlog --since="${SINCE_HOURS} hours" | wc -l) -eq 0 ]; then
 	echo "There have been no changes since ${SINCE_HOURS} hours, no need to build"
