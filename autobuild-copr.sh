@@ -34,12 +34,15 @@
 REMOVE_WORK_DIR=0
 
 # git repository to clone
-GIT_REPO_URL='https://github.com/gluster/glusterfs.git'
+GIT_REPO_URL='git://review.gluster.org/glusterfs'
 
 # the git branch to build
 GIT_BRANCH='master'
 #GIT_BRANCH='release-3.5'
 #GIT_BRANCH='release-3.4'
+
+# check for changes in the last SINCE_HOURS hours, dont build if no changes
+SINCE_HOURS=24
 
 # target public server:/path to scp the SRPM to
 #SCP_TARGET='devos@people.fedoraproject.org:public_html/glusterfs-autobuild'
@@ -52,8 +55,9 @@ function usage()
 	echo "Usage: ${0} -d <WORKDIR> -r <GIT_REPO> -b <BRANCH> -s <SCP_TARGET> -p <PUB_URL> -l"
 	echo ''
 	echo '-d <WORKDIR>      Directory to place the git repository in (defaults to a tmp one)'
-	echo "-r <GIT_REPO>     URL to the git repository to clone (default: ${GIT_REPO})"
+	echo "-r <GIT_REPO>     URL to the git repository to clone (default: ${GIT_REPO_URL})"
 	echo "-b <BRANCH>       Branch to use for building (default: ${GIT_BRANCH})"
+	echo "-H <HOURS>        Only build if there were changes in the last HOURS (default: ${SINCE_HOURS}, use 0 to force)"
 	echo '-s <SCP_TARGET>   URL to scp the resulting SRPM to'
 	echo '-p <PUB_URL>      Public URL where the SRPM can be found after scp'
 	echo '-l                Run on the local system only, use mock instead of copr-cli'
@@ -67,7 +71,12 @@ function cleanup()
 
 trap cleanup EXIT
 
-while getopts ":d:b:s:p:l" OPT; do
+if [ ${#@} -eq 0 ]; then
+	usage
+	exit 1
+fi
+
+while getopts "d:b:r:H:s:p:l" OPT; do
 	case ${OPT} in
 		d)
 			WORK_DIR="${OPTARG}"
@@ -78,6 +87,9 @@ while getopts ":d:b:s:p:l" OPT; do
 			;;
 		b)
 			GIT_BRANCH="${OPTARG}"
+			;;
+		H)
+			SINCE_HOURS="${OPTARG}"
 			;;
 		s)
 			SCP_TARGET="${OPTARG}"
@@ -106,6 +118,9 @@ if [ -z "${GIT_REPO_URL}" ]; then
 elif [ -z "${GIT_BRANCH}" ]; then
 	echo "Error: GIT_BRANCH is not set"
 	exit 1
+elif [ -z "${SINCE_HOURS}" ]; then
+	echo "Error: HOURS is not set"
+	exit 1
 elif [ -z "${RUN_LOCAL}" ]; then
 	if [ -z "${SCP_TARGET}" ]; then
 		echo "Error: SCP_TARGET is not set"
@@ -113,7 +128,7 @@ elif [ -z "${RUN_LOCAL}" ]; then
 	elif [ -z "${PUBLIC_URL}" ]; then
 		echo "Error: PUBLIC_URL is not set"
 		exit 1
-	elif copr-cli list > /dev/null; then
+	elif ! copr-cli list > /dev/null; then
 		echo "Error: copr-cli is not working"
 		if [ ! -e ~/.config/copr ]; then
 			echo "Missing ~/.config/copr, see http://copr.fedoraproject.org/api/"
@@ -133,7 +148,7 @@ fi
 pushd ${WORK_DIR}
 
 # fetch the current status
-git fetch -q origin
+git fetch -q -f origin
 
 # reset the branch to checkout
 if git log -1 autobuild/${GIT_BRANCH} > /dev/null; then
@@ -148,10 +163,16 @@ git clean -f -d
 # generate a version based on branch.date.last-commit-hash
 if [ ${GIT_BRANCH} = 'master' ]; then
 	GIT_VERSION=''
-	VERSION="$(date +%Y%m%d).$(git log -1 --format=%h)"
 else
-	GIT_VERSION="$(sed 's/.*-//' <<< ${GIT_BRANCH})"
-	VERSION="${GIT_VERSION}.$(date +%Y%m%d).$(git log -1 --format=%h)"
+	GIT_VERSION="$(sed 's/.*-//' <<< ${GIT_BRANCH})."
+fi
+
+GIT_HASH="$(git log -1 --format=%h)"
+VERSION="${GIT_VERSION}$(date +%Y%m%d).${GIT_HASH}"
+
+if [ $(git shortlog --since="${SINCE_HOURS} hours" | wc -l) -eq 0 ]; then
+	echo "There have been no changes since ${SINCE_HOURS} hours, no need to build"
+	exit 0
 fi
 
 # tag the current commit for reference
