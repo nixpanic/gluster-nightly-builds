@@ -50,6 +50,9 @@ SINCE_HOURS=24
 # public URL for downloading the SRPM
 #PUBLIC_URL='http://people.fedoraproject.org/~devos/glusterfs-autobuild'
 
+# wait for the build to finish
+WAIT_FINISHED=0
+
 function usage()
 {
 	echo "Usage: ${0} -d <WORKDIR> -r <GIT_REPO> -b <BRANCH> -s <SCP_TARGET> -p <PUB_URL> -l"
@@ -61,6 +64,7 @@ function usage()
 	echo '-s <SCP_TARGET>   URL to scp the resulting SRPM to'
 	echo '-p <PUB_URL>      Public URL where the SRPM can be found after scp'
 	echo '-l                Run on the local system only, use mock instead of copr-cli'
+	echo '-w                Wait for the build to finish (only used for copr-cli)'
 	echo ''
 }
 
@@ -76,7 +80,7 @@ if [ ${#@} -eq 0 ]; then
 	exit 1
 fi
 
-while getopts "d:b:r:H:s:p:l" OPT; do
+while getopts "d:b:r:H:s:p:lw" OPT; do
 	case ${OPT} in
 		d)
 			WORK_DIR="${OPTARG}"
@@ -99,6 +103,9 @@ while getopts "d:b:r:H:s:p:l" OPT; do
 			;;
 		l)
 			RUN_LOCAL=1
+			;;
+		w)
+			WAIT_FINISHED=1
 			;;
 		*)
 			usage
@@ -217,7 +224,12 @@ else
 
 	COPR=glusterfs${COPR_VERSION}
 
-	copr-cli build --nowait NOWAIT ${COPR} ${URL}
+	COPR_OPTS='--nowait NOWAIT'
+	if [ ${WAIT_FINISHED} -eq 1 ]; then
+		COPR_OPTS=''
+	fi
+
+	copr-cli build ${COPR_OPTS} ${COPR} ${URL}
 fi
 
 popd # "${WORK_DIR}"
