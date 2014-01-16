@@ -7,6 +7,11 @@
 # should be build from the Fedora packaging infrastructire (dist-git) and build
 # in Koji.
 #
+# Exit codes:
+# - 0; build success
+# - 1: error
+# - 200: no COPR build needed
+#
 # Dependencies:
 # - git: used to clone a git repository and checkout a branch
 # - autotools: ./autogen.sh is run
@@ -53,6 +58,9 @@ SINCE_HOURS=24
 # wait for the build to finish
 WAIT_FINISHED=0
 
+# by default we return an error
+RET=1
+
 function usage()
 {
 	echo "Usage: ${0} -d <WORKDIR> -r <GIT_REPO> -b <BRANCH> -s <SCP_TARGET> -p <PUB_URL> -l"
@@ -71,6 +79,7 @@ function usage()
 function cleanup()
 {
 	[ "${REMOVE_WORK_DIR}" == "1" ] && rm -rf ${WORK_DIR}
+	return ${RET}
 }
 
 trap cleanup EXIT
@@ -180,7 +189,7 @@ fi
 
 if [ $(git shortlog --since="${SINCE_HOURS} hours" | wc -l) -eq 0 ]; then
 	echo "There have been no changes since ${SINCE_HOURS} hours, no need to build"
-	exit 0
+	exit 200
 fi
 
 # tag the current commit for reference
@@ -210,6 +219,7 @@ SRPM=$(rpmbuild --define 'dist .autobuild' --define "_srcrpmdir ${PWD}" \
 
 if [ -n "${RUN_LOCAL}" ]; then
 	mock ${SRPM}
+	RET=${?}
 else
 	# copy to a public reachable server
 	scp ${SRPM} "${SCP_TARGET}"
@@ -230,9 +240,10 @@ else
 	fi
 
 	copr-cli build ${COPR_OPTS} ${COPR} ${URL}
+	RET=${?}
 fi
 
 popd # "${WORK_DIR}"
 
-exit 0
+exit ${RET}
 
