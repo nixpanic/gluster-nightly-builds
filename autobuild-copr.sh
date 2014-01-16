@@ -187,8 +187,9 @@ else
 	VERSION="${GIT_VERSION}.$(date +%Y%m%d).${GIT_HASH}"
 fi
 
-if [ $(git shortlog --since="${SINCE_HOURS} hours" | wc -l) -eq 0 ]; then
+if [ ${SINCE_HOURS} -ne 0 -a $(git shortlog --since="${SINCE_HOURS} hours" | wc -l) -eq 0 ]; then
 	echo "There have been no changes since ${SINCE_HOURS} hours, no need to build"
+	RET=200
 	exit 200
 fi
 
@@ -196,6 +197,7 @@ fi
 if ! git tag "autobuild/${VERSION}"; then
 	# this tag already exists, do not build again
 	echo "${VERSION} has been build already, remove the tag 'autobuild/${VERSION}' to retry"
+	RET=1
 	exit 1
 fi
 
