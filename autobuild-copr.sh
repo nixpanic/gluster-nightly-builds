@@ -144,7 +144,7 @@ elif [ -z "${RUN_LOCAL}" ]; then
 	elif [ -z "${PUBLIC_URL}" ]; then
 		echo "Error: PUBLIC_URL is not set"
 		exit 1
-	elif ! copr-cli list > /dev/null; then
+	elif ! copr-cli -h > /dev/null; then
 		echo "Error: copr-cli is not working"
 		if [ ! -e ~/.config/copr ]; then
 			echo "Missing ~/.config/copr, see http://copr.fedoraproject.org/api/"
@@ -187,10 +187,13 @@ else
 	VERSION="${GIT_VERSION}.$(date +%Y%m%d).${GIT_HASH}"
 fi
 
-if [ ${SINCE_HOURS} -ne 0 -a $(git shortlog --since="${SINCE_HOURS} hours" | wc -l) -eq 0 ]; then
-	echo "There have been no changes since ${SINCE_HOURS} hours, no need to build"
-	RET=200
-	exit 200
+if [ ${SINCE_HOURS} -ne 0 ]; then
+	CHANGES=$(git log --oneline --since="${SINCE_HOURS}hours" | wc -l)
+	if [ ${CHANGES} -eq 0 ]; then
+		echo "There have been no changes since ${SINCE_HOURS} hours, no need to build"
+		RET=200
+		exit 200
+	fi
 fi
 
 # tag the current commit for reference
