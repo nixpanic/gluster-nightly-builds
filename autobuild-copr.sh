@@ -220,6 +220,8 @@ make dist
 # build the SRPM
 rm -f *.src.rpm
 SRPM=$(rpmbuild --define 'dist .autobuild' --define "_srcrpmdir ${PWD}" \
+	--define '_source_payload w9.gzdio' \
+	--define '_source_filedigest_algorithm 1' \
 	-ts glusterfs-${VERSION}.tar.gz | cut -d' ' -f 2)
 
 if [ -n "${RUN_LOCAL}" ]; then
