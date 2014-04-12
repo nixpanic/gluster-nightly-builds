@@ -205,7 +205,7 @@ if ! git tag "autobuild/${VERSION}"; then
 fi
 
 # replace the default version by our autobuild one
-sed -i "s/^AC_INIT.*/AC_INIT([glusterfs],[${VERSION}],[gluster-devel@nongnu.org])/" configure.ac
+sed -i "s/^AC_INIT(.*)$/AC_INIT([glusterfs],[${VERSION}],[gluster-devel@nongnu.org])/" configure.ac
 
 # Add a note to the ChangeLog (generated with 'make dist')
 git commit -q -n --author='Autobuild <gluster-devel@nongnu.org>' \
