@@ -204,12 +204,14 @@ if ! git tag "autobuild/${VERSION}"; then
 	exit 1
 fi
 
-# replace the default version by our autobuild one
-sed -i "s/^AC_INIT(.*)$/AC_INIT([glusterfs],[${VERSION}],[gluster-devel@nongnu.org])/" configure.ac
+if grep -q -E '^AC_INIT(.*)$' configure.ac; then
+	# replace the default version by our autobuild one
+	sed -i "s/^AC_INIT(.*)$/AC_INIT([glusterfs],[${VERSION}],[gluster-devel@nongnu.org])/" configure.ac
 
-# Add a note to the ChangeLog (generated with 'make dist')
-git commit -q -n --author='Autobuild <gluster-devel@nongnu.org>' \
-	-m "autobuild: set version to ${VERSION}" configure.ac
+	# Add a note to the ChangeLog (generated with 'make dist')
+	git commit -q -n --author='Autobuild <gluster-devel@nongnu.org>' \
+		-m "autobuild: set version to ${VERSION}" configure.ac
+fi
 
 # generate the tar.gz archive
 ./autogen.sh
