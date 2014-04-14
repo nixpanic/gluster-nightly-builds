@@ -204,7 +204,7 @@ if ! git tag "autobuild/${VERSION}"; then
 	exit 1
 fi
 
-if grep -q -E '^AC_INIT(.*)$' configure.ac; then
+if grep -q -E '^AC_INIT\(.*\)$' configure.ac; then
 	# replace the default version by our autobuild one
 	sed -i "s/^AC_INIT(.*)$/AC_INIT([glusterfs],[${VERSION}],[gluster-devel@nongnu.org])/" configure.ac
 
