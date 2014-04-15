@@ -187,6 +187,14 @@ else
 	VERSION="${GIT_VERSION}.$(date +%Y%m%d).${GIT_HASH}"
 fi
 
+# overload some variables to match the auto-generated version
+if [ -x build-aux/pkg-version ]; then
+	VERSION="$(build-aux/pkg-version --version)"
+fi
+
+# unique tag to use in git
+TAG="${VERSION}-$(date +%Y%m%d).${GIT_HASH}"
+
 if [ ${SINCE_HOURS} -ne 0 ]; then
 	CHANGES=$(git log --oneline --since="${SINCE_HOURS}hours" | wc -l)
 	if [ ${CHANGES} -eq 0 ]; then
@@ -197,9 +205,9 @@ if [ ${SINCE_HOURS} -ne 0 ]; then
 fi
 
 # tag the current commit for reference
-if ! git tag "autobuild/${VERSION}"; then
+if ! git tag "autobuild/${TAG}"; then
 	# this tag already exists, do not build again
-	echo "${VERSION} has been build already, remove the tag 'autobuild/${VERSION}' to retry"
+	echo "${TAG} has been build already, remove the tag 'autobuild/${TAG}' to retry"
 	RET=1
 	exit 1
 fi
