@@ -1,6 +1,6 @@
 Name:		dgo-nightly
 Version:	1.0
-Release:	0.1%{?dist}
+Release:	0.2%{?dist}
 BuildArch:	noarch
 Summary:	Repository files for the download.gluster.org nightly builds
 
@@ -16,6 +16,13 @@ Summary:	Repository files for the download.gluster.org nightly builds (master br
 
 %description master
 Repository files for the download.gluster.org nightly builds (master branch).
+
+
+%package 36
+Summary:	Repository files for the download.gluster.org nightly builds (release-3.6)
+
+%description 36
+Repository files for the download.gluster.org nightly builds (release-3.6).
 
 
 %package 35
@@ -51,7 +58,7 @@ DIST_NAME='Fedora %{fedora}'
 REPO_PATH='fedora-%{fedora}-$basearch'
 %endif
 
-for VERSION in '' -3.5 -3.4 -3.3
+for VERSION in '' -3.6 -3.5 -3.4 -3.3
 do
 
 cat << EOF > dgo-nightly${VERSION}.repo
@@ -67,7 +74,7 @@ done
 
 %install
 mkdir -p %{buildroot}/etc/yum.repos.d
-for VERSION in '' -3.5 -3.4 -3.3
+for VERSION in '' -3.6 -3.5 -3.4 -3.3
 do
 	install -m 0644 dgo-nightly${VERSION}.repo %{buildroot}/etc/yum.repos.d/dgo-nightly${VERSION}.repo
 done
@@ -75,6 +82,9 @@ done
 
 %files master
 /etc/yum.repos.d/dgo-nightly.repo
+
+%files 36
+/etc/yum.repos.d/dgo-nightly-3.6.repo
 
 %files 35
 /etc/yum.repos.d/dgo-nightly-3.5.repo
@@ -87,5 +97,8 @@ done
 
 
 %changelog
+* Thu Jul 31 2014 Niels de Vos <ndevos@redhat.com>
+- Add a sub-package for release-3.6.
+
 * Tue Apr 22 2014 Niels de Vos <ndevos@redhat.com>
 - Initial packaging.
