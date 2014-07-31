@@ -1,0 +1,57 @@
+Automatically building GlusterFS from sources for Fedora and EPEL
+
+
+Requirements:
+
+- build server, should be able to use git, run 'make dist' and have 'copr-cli'
+  installed (build.gluster.org)
+- public upload/download server (download.gluster.org)
+- Fedora COPR account and pre-configured repositories
+  (http://copr.fedoraproject.org/coprs/devos/ has them)
+
+
+The workflow to build RPMs from the git repository, looks like this:
+
+1. configure the sources, generate files: ./autogen.sh && ./configure
+2. create a tarball with the sources and generated files: make dist
+3. create a src.rpm from the tarball: rpmbuild -ts $tarball
+4. upload the src.rpm to a public server, so that Fedora COPR can get it
+5. instruct COPR to rebuild the src.rpm
+6. sync the resulting RPMs to the public server
+
+
+Configuration
+
+Currently, both autobuild-cron.sh and autobuild-copr.sh contain some
+variables that need adjusting for deployment. In future, these options should
+be placed in and read from a separate configuration file.
+
+Both scripts need to be saved in $PATH, for example in ~/bin/ and make sure
+that they can get executed.
+
+In order to have the copr-cli command functional, it is needed to get an API
+key and save it in ~/.config/copr. Get your personal 180 day valid API key from
+http://copr.fedoraproject.org/api/ .
+
+In a crontab, add something like this:
+
+    0 0 * * * ~/bin/autobuild-cron.sh 2>&1 | tee ~/autobuild.log
+
+
+Testing
+
+It is possible to run autobuild-copr.sh locally, without using Fedora COPR. See
+the documentation in the script for further details.
+
+For checking the configuration, the autobuild-cron.sh script can get executed
+from the commandline. It is useful to capture the output to a log file, just
+like is done in the crontab entry above. The building can take a while,
+depending on the queue of builds waiting in Fedora COPR, time differs between 5
+minutes to 30 minutes, per branch.
+
+
+References:
+
+- http://www.gluster.org/community/documentation/index.php/User:Ndevos/NightlyBuilds
+- https://forge.gluster.org/bugzappers/nightly-builds/
+- http://copr.fedoraproject.org/coprs/devos/
