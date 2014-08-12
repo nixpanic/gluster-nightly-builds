@@ -5,12 +5,12 @@ WORK_DIR=/home/ndevos/autobuild/glusterfs
 LAST=24
 # target is configured in ~/.ssh/config
 SSH_SERVER='nightly'
-SSH_TARGET='nightly:glusterfs-autobuild/SRPMS'
-PUB_URL='http://download.gluster.org/pub/gluster/glusterfs/nightly/SRPMS'
+SSH_TARGET='nightly:glusterfs-autobuild/sources'
+PUB_URL='http://download.gluster.org/pub/gluster/glusterfs/nightly/sources'
 COPR_URL='http://copr-be.cloud.fedoraproject.org/results/devos/'
 
 for BRANCH in ${BRANCHES}; do
-	/home/ndevos/bin/autobuild-copr.sh -H ${LAST} -b ${BRANCH} -d ${WORK_DIR} -s ${SSH_TARGET} -p ${PUB_URL} -w
+	/home/ndevos/bin/autobuild-copr.sh -H ${LAST} -b ${BRANCH} -d ${WORK_DIR} -s ${SSH_TARGET} -p ${PUB_URL} -w -S
 	RET=$?
 	if [ ${RET} -eq 1 ]; then
 		echo "an error occured"

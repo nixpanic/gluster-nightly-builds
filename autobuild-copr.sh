@@ -51,6 +51,7 @@ SINCE_HOURS=24
 
 # target public server:/path to scp the SRPM to
 #SCP_TARGET='devos@people.fedoraproject.org:public_html/glusterfs-autobuild'
+SOURCE_TARBALL_COPY=0
 
 # public URL for downloading the SRPM
 #PUBLIC_URL='http://people.fedoraproject.org/~devos/glusterfs-autobuild'
@@ -70,6 +71,7 @@ function usage()
 	echo "-b <BRANCH>       Branch to use for building (default: ${GIT_BRANCH})"
 	echo "-H <HOURS>        Only build if there were changes in the last HOURS (default: ${SINCE_HOURS}, use 0 to force)"
 	echo '-s <SCP_TARGET>   URL to scp the resulting SRPM to'
+	echo '-S                Upload the generated tarball to the <SCP_TARGET> too'
 	echo '-p <PUB_URL>      Public URL where the SRPM can be found after scp'
 	echo '-l                Run on the local system only, use mock instead of copr-cli'
 	echo '-w                Wait for the build to finish (only used for copr-cli)'
@@ -89,7 +91,7 @@ if [ ${#@} -eq 0 ]; then
 	exit 1
 fi
 
-while getopts "d:b:r:H:s:p:lw" OPT; do
+while getopts "d:b:r:H:s:Sp:lw" OPT; do
 	case ${OPT} in
 		d)
 			WORK_DIR="${OPTARG}"
@@ -106,6 +108,9 @@ while getopts "d:b:r:H:s:p:lw" OPT; do
 			;;
 		s)
 			SCP_TARGET="${OPTARG}"
+			;;
+		S)
+			SOURCE_TARBALL_COPY=1
 			;;
 		p)
 			PUBLIC_URL="${OPTARG}"
@@ -226,6 +231,11 @@ fi
 ./configure
 rm -f *.tar.gz
 make dist
+
+# copy the tarball to the SCP_TARGET if wanted
+if [ ${SOURCE_TARBALL_COPY} -eq 1 ]; then
+	scp glusterfs-${VERSION}.tar.gz "${SCP_TARGET}"
+fi
 
 # build the SRPM
 rm -f *.src.rpm
