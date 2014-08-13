@@ -232,9 +232,9 @@ fi
 rm -f *.tar.gz
 make dist
 
-# copy the tarball to the SCP_TARGET if wanted
+# copy the tarball to the SCP_TARGET if wanted, rename to unique VERSION/TAG
 if [ ${SOURCE_TARBALL_COPY} -eq 1 ]; then
-	scp glusterfs-${VERSION}.tar.gz "${SCP_TARGET}"
+	scp glusterfs-${VERSION}.tar.gz "${SCP_TARGET}:glusterfs-${TAG}.tar.gz"
 fi
 
 # build the SRPM
