@@ -10,6 +10,7 @@
 # Exit codes:
 # - 0; build success
 # - 1: error
+# - 100: scp of the src.rpm to the public webserver failed
 # - 200: no COPR build needed
 #
 # Dependencies:
@@ -250,6 +251,12 @@ if [ -n "${RUN_LOCAL}" ]; then
 else
 	# copy to a public reachable server
 	scp ${SRPM} "${SCP_TARGET}"
+	RET=$?
+	if [ $RET -eq 0 ]; then
+		echo "ERROR: copying ${SRPM} to ${SCP_TARGET} failed!"
+		git tag --delete ${TAG}
+		exit 100
+	fi
 
 	# trigger the COPR build for this new RPM
 	URL="${PUBLIC_URL}/$(basename ${SRPM})"

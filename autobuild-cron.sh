@@ -15,6 +15,9 @@ for BRANCH in ${BRANCHES}; do
 	if [ ${RET} -eq 1 ]; then
 		echo "an error occured"
 		continue
+	elif [ ${RET} -eq 100 ]; then
+		# TODO: need to retry
+		continue
 	elif [ ${RET} -eq 200 ]; then
 		# no COPR build triggered, no changes in the git repo
 		continue
