@@ -25,7 +25,7 @@ for BRANCH in ${BRANCHES}; do
 	if [ "${VERSION}" != 'master' ]; then
 		COPR="glusterfs-${VERSION}"
 	fi
-	ssh ${SSH_SERVER} "cd glusterfs-autobuild/${COPR} ; lftp -e 'mirror -n ; exit' '${COPR_URL}/${COPR}'"
+	ssh ${SSH_SERVER} "cd glusterfs-autobuild/${COPR} ; lftp -e 'mirror --delete-first --only-newer ; exit' '${COPR_URL}/${COPR}'"
 done
 
 
