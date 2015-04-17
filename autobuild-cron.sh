@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BRANCHES="master release-3.6 release-3.5 release-3.4 release-3.3"
+BRANCHES="master release-3.7 release-3.6 release-3.5 release-3.4 release-3.3"
 WORK_DIR=/home/ndevos/autobuild/glusterfs
 LAST=24
 # target is configured in ~/.ssh/config
