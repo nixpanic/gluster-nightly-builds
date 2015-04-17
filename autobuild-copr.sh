@@ -252,9 +252,9 @@ else
 	# copy to a public reachable server
 	scp ${SRPM} "${SCP_TARGET}"
 	RET=$?
-	if [ $RET -eq 0 ]; then
+	if [ $RET -ne 0 ]; then
 		echo "ERROR: copying ${SRPM} to ${SCP_TARGET} failed!"
-		git tag --delete ${TAG}
+		git tag --delete "autobuild/${TAG}"
 		exit 100
 	fi
 
