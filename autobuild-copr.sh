@@ -182,6 +182,9 @@ else
 fi
 git clean -f -d
 
+# sometimes (?) autom4te.cache stays behind :-/
+[ -d autom4te.cache ] && rm -rf autom4te.cache
+
 # generate a version based on branch.date.last-commit-hash
 if [ ${GIT_BRANCH} = 'master' ]; then
 	GIT_VERSION=''
